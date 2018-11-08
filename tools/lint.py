@@ -24,3 +24,4 @@ run([
     "node", tslint, "./js/**/*_test.ts", "./tests/**/*.ts", "--exclude",
     "**/gen/**/*.ts", "--project", "tsconfig.json"
 ])
+run(["cargo", "clippy"])
