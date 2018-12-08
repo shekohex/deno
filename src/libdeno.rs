@@ -12,12 +12,12 @@ pub struct isolate {
   _unused: [u8; 0],
 }
 
-/// If "alloc_ptr" is not null, this type represents a buffer which is created
+/// If `alloc_ptr` is not null, this type represents a buffer which is created
 /// in C side, and then passed to Rust side by `DenoRecvCb`. Finally it should
 /// be moved back to C side by `deno_respond`. If it is not passed to
 /// `deno_respond` in the end, it will be leaked.
 ///
-/// If "alloc_ptr" is null, this type represents a borrowed slice.
+/// If `alloc_ptr` is null, this type represents a borrowed slice.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct deno_buf {

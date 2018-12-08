@@ -26,7 +26,7 @@ struct SourceMap {
 }
 
 /// Cached filename lookups. The key can be None if a previous lookup failed to
-/// find a SourceMap.
+/// find a `SourceMap`.
 type CachedMaps = HashMap<String, Option<SourceMap>>;
 
 #[derive(Debug, PartialEq)]
@@ -86,12 +86,14 @@ impl StackFrame {
     if !line_v.is_u64() {
       return None;
     }
+    #[cfg_attr(feature = "cargo-clippy", allow(cast_possible_truncation))]
     let line = line_v.as_u64().unwrap() as u32;
 
     let column_v = &obj["column"];
     if !column_v.is_u64() {
       return None;
     }
+    #[cfg_attr(feature = "cargo-clippy", allow(cast_possible_truncation))]
     let column = column_v.as_u64().unwrap() as u32;
 
     let script_name_v = &obj["scriptName"];
@@ -135,7 +137,7 @@ impl StackFrame {
       }
     }
 
-    Some(StackFrame {
+    Some(Self {
       line: line - 1,
       column: column - 1,
       source_url: script_name,
@@ -150,7 +152,7 @@ impl StackFrame {
     &self,
     mappings_map: &mut CachedMaps,
     getter: &SourceMapGetter,
-  ) -> StackFrame {
+  ) -> Self {
     let maybe_sm = get_mappings(self.source_url.as_ref(), mappings_map, getter);
     let frame_pos = (self.source_url.to_owned(), self.line, self.column);
     let (source_url, line, column) = match maybe_sm {
@@ -175,7 +177,7 @@ impl StackFrame {
       },
     };
 
-    StackFrame {
+    Self {
       source_url,
       function_name: self.function_name.clone(),
       line,
@@ -212,7 +214,7 @@ impl SourceMap {
                 }
               }
 
-              Some(SourceMap { sources, mappings })
+              Some(Self { sources, mappings })
             }
           }
         }
@@ -256,7 +258,7 @@ impl JSError {
       }
     }
 
-    Some(JSError { message, frames })
+    Some(Self { message, frames })
   }
 
   pub fn apply_source_map(&self, getter: &SourceMapGetter) -> Self {
@@ -267,7 +269,7 @@ impl JSError {
       let f = frame.apply_source_map(&mut mappings_map, getter);
       frames.push(f);
     }
-    JSError { message, frames }
+    Self { message, frames }
   }
 }
 
