@@ -185,7 +185,7 @@ impl Isolate {
 
   pub fn last_exception(&self) -> Option<JSError> {
     let ptr = unsafe { libdeno::deno_last_exception(self.libdeno_isolate) };
-    if ptr == std::ptr::null() {
+    if ptr.is_null() {
       None
     } else {
       let cstr = unsafe { CStr::from_ptr(ptr) };
@@ -193,7 +193,7 @@ impl Isolate {
       debug!("v8_exception\n{}\n", v8_exception);
       let js_error = JSError::from_v8_exception(v8_exception).unwrap();
       let js_error_mapped = js_error.apply_source_map(&self.state.dir);
-      return Some(js_error_mapped);
+      Some(js_error_mapped)
     }
   }
 
@@ -219,7 +219,7 @@ impl Isolate {
     Ok(())
   }
 
-  pub fn respond(&self, req_id: i32, buf: Buf) {
+  pub fn respond(&self, req_id: i32, buf: &Buf) {
     self.state.metrics_op_completed(buf.len());
     // deno_respond will memcpy the buf into V8's heap,
     // so borrowing a reference here is sufficient.
@@ -233,12 +233,12 @@ impl Isolate {
     }
   }
 
-  fn complete_op(&self, req_id: i32, buf: Buf) {
+  fn complete_op(&self, req_id: i32, buf: &Buf) {
     // Receiving a message on rx exactly corresponds to an async task
     // completing.
     self.ntasks_decrement();
     // Call into JS with the buf.
-    self.respond(req_id, buf);
+    self.respond(req_id, &buf);
   }
 
   fn timeout(&self) {
@@ -265,7 +265,7 @@ impl Isolate {
     // Main thread event loop.
     while !self.is_idle() {
       match recv_deadline(&self.rx, self.get_timeout_due()) {
-        Ok((req_id, buf)) => self.complete_op(req_id, buf),
+        Ok((req_id, buf)) => self.complete_op(req_id, &buf),
         Err(mpsc::RecvTimeoutError::Timeout) => self.timeout(),
         Err(e) => panic!("recv_deadline() failed: {:?}", e),
       }
@@ -337,7 +337,7 @@ extern "C" fn pre_dispatch(
       isolate.state.metrics_op_completed(buf.len());
     } else {
       // Set the synchronous response, the value returned from isolate.send().
-      isolate.respond(req_id, buf);
+      isolate.respond(req_id, &buf);
     }
   } else {
     // Execute op asynchronously.

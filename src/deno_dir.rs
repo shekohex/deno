@@ -355,17 +355,8 @@ impl DenoDir {
 impl SourceMapGetter for DenoDir {
   fn get_source_map(&self, script_name: &str) -> Option<String> {
     match self.code_fetch(script_name, ".") {
-      Err(_e) => {
-        return None;
-      }
-      Ok(out) => match out.maybe_source_map {
-        None => {
-          return None;
-        }
-        Some(source_map) => {
-          return Some(source_map);
-        }
-      },
+      Err(_e) => None,
+      Ok(out) => out.maybe_source_map,
     }
   }
 }

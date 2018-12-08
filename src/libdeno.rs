@@ -19,6 +19,7 @@ pub struct isolate {
 ///
 /// If "alloc_ptr" is null, this type represents a borrowed slice.
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct deno_buf {
   alloc_ptr: *const u8,
   alloc_len: usize,
@@ -59,7 +60,7 @@ impl<'a> From<&'a [u8]> for deno_buf {
     Self {
       alloc_ptr: null(),
       alloc_len: 0,
-      data_ptr: x.as_ref().as_ptr(),
+      data_ptr: x.as_ptr(),
       data_len: x.len(),
     }
   }

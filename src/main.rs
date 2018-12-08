@@ -71,6 +71,7 @@ impl log::Log for Logger {
   fn flush(&self) {}
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 fn print_err_and_exit(err: js_errors::JSError) {
   // TODO Currently tests depend on exception going to stdout. It should go
   // to stderr. https://github.com/denoland/deno/issues/964

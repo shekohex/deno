@@ -50,7 +50,7 @@ impl ToString for StackFrame {
   fn to_string(&self) -> String {
     // Note when we print to string, we change from 0-indexed to 1-indexed.
     let (line, column) = (self.line + 1, self.column + 1);
-    if self.function_name.len() > 0 {
+    if !self.function_name.is_empty() {
       format!(
         "    at {} ({}:{}:{})",
         self.function_name, self.source_url, line, column
@@ -192,10 +192,10 @@ impl SourceMap {
     // Ugly. Maybe use serde_derive.
     match serde_json::from_str::<serde_json::Value>(json_str) {
       Ok(serde_json::Value::Object(map)) => match map["mappings"].as_str() {
-        None => return None,
+        None => None,
         Some(mappings_str) => {
           match parse_mappings::<()>(mappings_str.as_bytes()) {
-            Err(_) => return None,
+            Err(_) => None,
             Ok(mappings) => {
               if !map["sources"].is_array() {
                 return None;
@@ -205,19 +205,19 @@ impl SourceMap {
 
               for source_val in sources_val {
                 match source_val.as_str() {
-                  None => return None,
                   Some(source) => {
                     sources.push(source.to_string());
                   }
+                  None => return None,
                 }
               }
 
-              return Some(SourceMap { sources, mappings });
+              Some(SourceMap { sources, mappings })
             }
           }
         }
       },
-      _ => return None,
+      _ => None,
     }
   }
 }
